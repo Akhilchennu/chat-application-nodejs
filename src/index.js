@@ -1,4 +1,5 @@
 const express = require('express');
+const {connectionURL,db} =require('../configurations/configuration');
 const signup = require('../routes/signup');
 const login = require('../routes/login');
 const authUser=require('../routes/auth');
@@ -8,9 +9,10 @@ const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
 const cookieParser = require('cookie-parser');
 const session = require('express-session');
-const redis = require("redis");
-const redisClient = redis.createClient();
-const RedisStore = require('connect-redis')(session);
+const MongoStore = require('connect-mongo')(session);
+// const redis = require("redis");
+// const redisClient = redis.createClient();
+// const RedisStore = require('connect-redis')(session);
 const http=require('http');
 const socketio=require('socket.io');
 require('../db/mongoose');
@@ -21,9 +23,9 @@ const server=http.createServer(app);
 
 const io=socketio(server);
 
-redisClient.on('error', (err) => {
-    console.log('Redis error: ', err);
-});
+// redisClient.on('error', (err) => {
+//     console.log('Redis error: ', err);
+// });
 
 app.use(function (req, res, next) {
 
@@ -43,12 +45,14 @@ app.use(function (req, res, next) {
     // Pass to next layer of middleware
     next();
 });
+
 app.use(cookieParser());
 app.use(session({
     secret:'secretissecret',
     resave:false,
     saveUninitialized:false,
-    store:new RedisStore({client :redisClient}),
+    // store:new RedisStore({client :redisClient}),
+    store:new MongoStore({url:'mongodb+srv://akhie:sspmb143@cluster0-zn2vn.mongodb.net/Chat' }),
     cookie: { httpOnly: false, maxAge: 86400000 } // configuration for sessions to expire
 }))
 //initializing passport
